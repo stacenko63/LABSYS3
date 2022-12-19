@@ -87,7 +87,7 @@ using namespace std;
 //    string data = "";
 //    for (int i = 0; i < size_; i++) {
 //        for (int j = 0; j < size_; j++) {
-//            data += "1";
+//            data += to_string(rand() % 10);
 //            if (j < size_ - 1) data += " ";
 //        }
 //        if (i < size_ - 1) data += "\n";
@@ -213,16 +213,16 @@ using namespace std;
 //    }
 //    else cout << "\nЗатраченное время: " << (double)time / CLOCKS_PER_SEC << "\n";
 //}
-//
-//
-//
-//
-//
-//
+
+
+
+
+
+
 //int main() {
 //    chdir("/home/artem/CLionProjects/SYSLAB3/");
 //    //get_matrix_to_file("test_matrix.bin", 10);
-//    //get_matrix_to_file("matrix.bin", 1000);
+//    get_matrix_to_file("matrix.bin", 1000);
 //    work("test_matrix.bin", true);
 //    work("matrix.bin", false);
 //    free_memory();
@@ -232,100 +232,102 @@ using namespace std;
 
 //задание 2
 
-//const int size_ = 20;
-//int* matrix = new int[size_];
-//const int process_count = 4;
-//pthread_t array[process_count];
-//int indexes[size_];
-//int indexes_count = 0;
-//int max_value = 2;
-//int min_value = 1;
-//pthread_mutex_t mutex;
-//pthread_spinlock_t lock;
-////pthread_barrier_t barrier;
-//
-//
-//void input_correctly_number(int& aa)
-//{
-//    while (!(cin >> aa) || cin.peek() != '\n')
-//    {
-//        cin.clear();
-//        cin.ignore(cin.rdbuf()->in_avail());
-//        while (cin.get() != '\n') {};
-//        cout << "Введено неверное значение. Повторите попытку: ";
-//    }
-//}
-//
-//void Limitations(int min, int max, int& value)
-//{
-//    while (value < min || value > max)
-//    {
-//        cout << "Введенное число не соответствует промежутку. Повторите ввод: ";
-//        input_correctly_number(value);
-//    }
-//}
-//
-//void* find_element(void* arg) {
-//    //pthread_mutex_lock(&mutex);
-//    int value = *(int*)arg;
-//    pthread_t id = pthread_self();
-//    int number = 0;
-//    for (int i = 0; i < process_count; i++) {
-//        if (id == array[i]) {
-//            number = i;
-//            break;
-//        }
-//    }
-//    pthread_spin_lock(&lock);
-//    //возрастание
-//    for (int i = number * (size_ / process_count); i < number * (size_ / process_count) + (size_ / process_count); i++) {
+const int size_ = 20;
+int* matrix = new int[size_];
+bool* indexes_array = new bool[size_];
+const int process_count = 4;
+pthread_t array[process_count];
+int indexes[size_];
+int indexes_count = 0;
+int max_value = 2;
+int min_value = 1;
+pthread_mutex_t mutex;
+pthread_spinlock_t lock;
+//pthread_barrier_t barrier;
+
+
+void input_correctly_number(int& aa)
+{
+    while (!(cin >> aa) || cin.peek() != '\n')
+    {
+        cin.clear();
+        cin.ignore(cin.rdbuf()->in_avail());
+        while (cin.get() != '\n') {};
+        cout << "Введено неверное значение. Повторите попытку: ";
+    }
+}
+
+void Limitations(int min, int max, int& value)
+{
+    while (value < min || value > max)
+    {
+        cout << "Введенное число не соответствует промежутку. Повторите ввод: ";
+        input_correctly_number(value);
+    }
+}
+
+void* find_element(void* arg) {
+    pthread_mutex_lock(&mutex);
+    int value = *(int*)arg;
+    pthread_t id = pthread_self();
+    int number = 0;
+    for (int i = 0; i < process_count; i++) {
+        if (id == array[i]) {
+            number = i;
+            break;
+        }
+    }
+    //pthread_spin_lock(&lock);
+    //возрастание
+    for (int i = number * (size_ / process_count); i < number * (size_ / process_count) + (size_ / process_count); i++) {
+        if (matrix[i] == value) {
+            indexes[indexes_count] = i;
+            indexes_count++;
+            indexes_array[i] = true;
+        }
+    }
+    //убывание
+
+//    for (int i = size_ - 1 - number * (size_ / process_count); i >= size_ - number * (size_ / process_count) - (size_ / process_count); i--) {
 //        if (matrix[i] == value) {
 //            indexes[indexes_count] = i;
 //            indexes_count++;
+//            indexes_array[i] = true;
 //        }
 //    }
-//    //убывание
-//
-////    for (int i = size_ - 1 - number * (size_ / process_count); i >= size_ - number * (size_ / process_count) - (size_ / process_count); i--) {
-////        if (matrix[i] == value) {
-////            indexes[indexes_count] = i;
-////            indexes_count++;
-////        }
-////    }
-//    //pthread_mutex_unlock(&mutex);
-//    pthread_spin_unlock(&lock);
-//}
-//
-//int main(int argc, char* argv[]) {
-//    int value = 2;
-//    cout << "Введите число от 0 до " << max_value << " для поиска в массиве: ";
-//    //input_correctly_number(value);
-//    //Limitations(0, max_value, value);
-//    cout << "Сгенерированный массив: \n";
-//    for (int i = 0; i < size_; i++) {
-//        matrix[i] = i % 2 == 0 ? 2 : 1;
-//    }
-//    for (int i = 0; i < size_; i++) {
-//        cout << matrix[i] << " ";
-//    }
-//    cout << "\n";
-//    //pthread_mutex_init(&mutex, NULL);
-//    pthread_spin_init(&lock, 0);
-//    //pthread_barrier_init(&barrier, NULL, 4);
-//    for (int i = 0; i < process_count; i++) {
-//        pthread_create(&array[i], NULL, &find_element, &value);
-//    }
-//    for (int i = 0; i < process_count; i++) {
-//        pthread_join(array[i], NULL);
-//    }
-//    cout << "Введенное значение найдено в сгенерированном массиве по следующим индексам: \n";
-//    for (int i = 0; i < indexes_count; i++) {
-//        cout << indexes[i] << " ";
-//    }
-//    //pthread_mutex_destroy(&mutex);
-//    pthread_spin_destroy(&lock);
-//    //pthread_barrier_destroy(&barrier);
-//}
+    pthread_mutex_unlock(&mutex);
+    //pthread_spin_unlock(&lock);
+}
+
+int main(int argc, char* argv[]) {
+    int value = 2;
+    cout << "Введите число от 0 до " << max_value << " для поиска в массиве: ";
+    //input_correctly_number(value);
+    //Limitations(0, max_value, value);
+    cout << "Сгенерированный массив: \n";
+    for (int i = 0; i < size_; i++) {
+        matrix[i] = i % 2 == 0 ? 2 : 1;
+        indexes_array[i] = false;
+        cout << matrix[i] << " ";
+    }
+    cout << "\n";
+    pthread_mutex_init(&mutex, NULL);
+    //pthread_spin_init(&lock, 0);
+    //pthread_barrier_init(&barrier, NULL, 4);
+    for (int i = 0; i < process_count; i++) {
+        pthread_create(&array[i], NULL, &find_element, &value);
+    }
+    for (int i = 0; i < process_count; i++) {
+        pthread_join(array[i], NULL);
+    }
+    cout << "Введенное значение найдено в сгенерированном массиве по следующим индексам: \n";
+    for (int i = 0; i < size_; i++) {
+        if (indexes_array[i]) cout << i << " ";
+    }
+    pthread_mutex_destroy(&mutex);
+    //pthread_spin_destroy(&lock);
+    //pthread_barrier_destroy(&barrier);
+}
 
 
 //задание 3
@@ -384,7 +386,7 @@ using namespace std;
 //            array[i] = array[i+1];
 //        }
 //        size--;
-//        pthread_mutex_lock(&mutex);
+//        pthread_mutex_unlock(&mutex);
 //        return tmp;
 //    }
 //
@@ -395,7 +397,7 @@ using namespace std;
 //        }
 //        v[size] = v;
 //        size++;
-//        pthread_mutex_lock(&mutex);
+//        pthread_mutex_unlock(&mutex);
 //        return true;
 //    }
 //
